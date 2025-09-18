@@ -7,12 +7,20 @@ subjects = ["Physics", "Computer", "Math", "English", "Chemistry"]
 def get_grade(percentage):
     if percentage > 90:
         return "A+"
-    elif percentage > 80:
+    elif percentage > 81:
         return "A"
-    elif percentage > 70:
+    elif 60 <= percentage >= 71:
+        return "B+"
+    elif 60 <= percentage >= 61:
         return "B"
-    elif 60 <= percentage <= 70:
+    elif 60 <= percentage >= 51:
+        return "C+"
+    elif 60 <= percentage >= 41:
         return "C"
+    elif 60 <= percentage >= 31:
+        return "D+"
+    elif 60 <= percentage >= 21:
+        return "E+"
     else:
         return "Fail"
 
