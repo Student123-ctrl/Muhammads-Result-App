@@ -7,19 +7,21 @@ from PIL import Image
 # Safe CSS loader
 # --------------------------
 def load_css(file_path):
+    """Load CSS safely from given path."""
     if os.path.exists(file_path):
         with open(file_path) as f:
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
     else:
         st.warning(f"CSS file not found: {file_path}")
 
+# Load CSS from images folder
 load_css(os.path.join("images", "style.css"))
 
 # --------------------------
-# Safe Image loader
+# Safe image loader
 # --------------------------
 def load_image(file_path, width=None):
-    """Load image safely; show warning if missing"""
+    """Load an image safely, show warning if missing or corrupted."""
     if os.path.exists(file_path):
         try:
             img = Image.open(file_path)
@@ -36,7 +38,7 @@ st.sidebar.title("🎓 Menu")
 page = st.sidebar.radio("Go to", ["Home", "Add Student", "Results", "About"])
 
 # --------------------------
-# Utility functions
+# Utility function
 # --------------------------
 def calculate_grade(percentage):
     if percentage >= 90:
