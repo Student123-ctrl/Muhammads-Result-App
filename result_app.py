@@ -1,65 +1,87 @@
 import streamlit as st
 
-# Subjects list
+# ---------------------------
+# App Config & Branding
+# ---------------------------
+st.set_page_config(page_title="Student Result Management", page_icon="🎓", layout="centered")
+
+# Logo + Title
+st.image("https://cdn-icons-png.flaticon.com/512/3135/3135755.png", width=100)  # logo link
+st.title("🎓 Student Result Management System")
+st.markdown("Manage unlimited students, calculate grades & view results instantly!")
+
+# ---------------------------
+# Subjects
+# ---------------------------
 subjects = ["Physics", "Computer", "Math", "English", "Chemistry"]
 
-# Function to calculate grade
+# ---------------------------
+# Grade Function
+# ---------------------------
 def get_grade(percentage):
     if percentage > 90:
         return "A+"
     elif percentage > 81:
         return "A"
-    elif 60 <= percentage >= 71:
+    elif percentage >= 71:
         return "B+"
-    elif 60 <= percentage >= 61:
+    elif percentage >= 61:
         return "B"
-    elif 60 <= percentage >= 51:
+    elif percentage >= 51:
         return "C+"
-    elif 60 <= percentage >= 41:
+    elif percentage >= 41:
         return "C"
-    elif 60 <= percentage >= 31:
+    elif percentage >= 31:
         return "D+"
-    elif 60 <= percentage >= 21:
+    elif percentage >= 21:
         return "E+"
     else:
         return "Fail"
 
-# Title
-st.title("🎓 Student Result Management System")
+# ---------------------------
+# Session Storage
+# ---------------------------
+if "students" not in st.session_state:
+    st.session_state.students = {}
 
-students = {}
+# ---------------------------
+# Add Students
+# ---------------------------
+st.subheader("➕ Add Student")
 
-# Input for 5 students
-for i in range(5):
-    name = st.text_input(f"Enter name of student {i+1}:", key=f"name{i}")
+with st.form("student_form", clear_on_submit=True):
+    name = st.text_input("Enter Student Name:")
+    marks_dict = {}
     if name:
-        students[name] = {}
         for subject in subjects:
             marks = st.number_input(
-                f"Enter marks for {subject} (0-100) for {name}:",
+                f"{subject} Marks (0-100)",
                 min_value=0, max_value=100, step=1, key=f"{name}_{subject}"
             )
-            students[name][subject] = marks
+            marks_dict[subject] = marks
+    submitted = st.form_submit_button("Add Student")
+    if submitted and name:
+        st.session_state.students[name] = marks_dict
+        st.success(f"✅ {name}'s record added!")
 
-# Button to calculate results
-if st.button("Show Results"):
-    st.subheader(" RESULTS")
-    
-    for name, marks_dict in students.items():
-        if not marks_dict:  # skip empty entries
-            continue
-        st.write(f"### Student: {name}")
-        total = sum(marks_dict.values())
-        
-        # Show subject-wise marks
-        for subject, marks in marks_dict.items():
-            st.write(f"{subject}: {marks}")
-        
-        # Calculate percentage
-        percentage = (total / 500) * 100
-        grade = get_grade(percentage)
-        
-        st.write(f"**Total:** {total}/500")
-        st.write(f"**Percentage:** {percentage:.2f}%")
-        st.write(f"**Grade:** {grade}")
-        st.markdown("---")
+# ---------------------------
+# Show Results
+# ---------------------------
+if st.button("📊 Show All Results"):
+    if not st.session_state.students:
+        st.warning("No students added yet!")
+    else:
+        st.subheader("All Students Results")
+        for name, marks_dict in st.session_state.students.items():
+            total = sum(marks_dict.values())
+            percentage = (total / (len(subjects) * 100)) * 100
+            grade = get_grade(percentage)
+
+            with st.expander(f"📖 Result of {name}"):
+                st.image("https://cdn-icons-png.flaticon.com/512/3135/3135715.png", width=60)  # student icon
+                st.write(f"**Total Marks:** {total}/{len(subjects)*100}")
+                st.write(f"**Percentage:** {percentage:.2f}%")
+                st.write(f"**Grade:** {grade}")
+                st.markdown("**Subject-wise Marks:**")
+                for subject, marks in marks_dict.items():
+                    st.write(f"- {subject}: {marks}")
