@@ -1,129 +1,177 @@
 import streamlit as st
 import pandas as pd
 import os
+from PIL import Image
 
-# ========== CONFIG ==========
-ASSETS_DIR = "assets"
-if not os.path.exists(ASSETS_DIR):
-    os.makedirs(ASSETS_DIR)
+# --------------------------
+# Safe CSS loader
+# --------------------------
+def load_css(filename):
+    path = os.path.join("images", filename)
+    if os.path.exists(path):
+        try:
+            with open(path) as f:
+                st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+        except Exception as e:
+            st.warning(f"⚠️ Cannot load CSS {filename}: {e}")
+    else:
+        st.warning(f"⚠️ CSS file not found: {filename}")
 
-LOGO = os.path.join(ASSETS_DIR, "student_icon.png")
-HOME_ICON = os.path.join(ASSETS_DIR, "home.png")
-ADD_ICON = os.path.join(ASSETS_DIR, "add.png")
-RESULTS_ICON = os.path.join(ASSETS_DIR, "results.png")
-ABOUT_ICON = os.path.join(ASSETS_DIR, "about.png")
+load_css("style.css")
 
-# ========== HELPER FUNCTIONS ==========
-def calculate_results(df):
-    subjects = [col for col in df.columns if col not in ["Name", "Roll No"]]
-    df["Total Marks"] = df[subjects].sum(axis=1)
-    df["Percentage"] = (df["Total Marks"] / (len(subjects) * 100)) * 100
-    df["Grade"] = df["Percentage"].apply(get_grade)
-    return df
+# --------------------------
+# Safe image loader
+# --------------------------
+def safe_image(filename, width=None):
+    """
+    Safely load an image from the images/ folder.
+    If the image is missing or cannot be loaded, show a placeholder instead.
+    """
+    path = os.path.join("images", filename)
+    if os.path.exists(path):
+        try:
+            img = Image.open(path)
+            st.image(img, width=width)
+        except Exception as e:
+            st.warning(f"⚠️ Cannot open {filename}: {e}")
+            st.text(f"[Image placeholder: {filename}]")
+    else:
+        st.warning(f"⚠️ Image not found: {filename}")
+        st.text(f"[Image placeholder: {filename}]")
 
-def get_grade(pct):
-    if pct >= 90:
+# --------------------------
+# Sidebar Navigation
+# --------------------------
+st.sidebar.title("🎓 Menu")
+page = st.sidebar.radio("Go to", ["Home", "Add Student", "Results", "About"])
+
+# --------------------------
+# Utility function
+# --------------------------
+def calculate_grade(percentage):
+    if percentage >= 90:
         return "A+"
-    elif pct >= 80:
+    elif percentage >= 80:
         return "A"
-    elif pct >= 70:
+    elif percentage >= 70:
         return "B"
-    elif pct >= 60:
+    elif percentage >= 60:
         return "C"
-    elif pct >= 50:
-        return "D"
     else:
         return "F"
 
-# In-memory student list
-if "students" not in st.session_state:
-    st.session_state["students"] = []
+# Subjects and max marks
+SUBJECTS = {
+    "Physics": 100,
+    "Math": 100,
+    "Chemistry": 100,
+    "English": 100,
+    "Computer": 100
+}
 
-# ========== SIDEBAR ==========
-st.sidebar.image(LOGO, width=120)
-menu = st.sidebar.radio(
-    "🎓 Menu",
-    ["Home", "Add Student", "Results", "About"],
-    format_func=lambda x: f"🏠 {x}" if x == "Home" else
-                         f"➕ {x}" if x == "Add Student" else
-                         f"📊 {x}" if x == "Results" else
-                         f"ℹ️ {x}"
-)
+DATA_FILE = os.path.join("data", "students.csv")
+os.makedirs("data", exist_ok=True)
 
-# ========== PAGES ==========
-if menu == "Home":
-    st.image(HOME_ICON, width=100)
-    st.title("🎓 Student Result Management System")
-    st.write("Manage students, add marks, calculate grades, and upload CSV/Excel files.")
+# --------------------------
+# Home Page
+# --------------------------
+if page == "Home":
+    safe_image("home.png", width=100)
+    st.title("🏫 Welcome to Student Result Management System")
+    st.write("Manage students, record marks, and generate result reports easily!")
 
-elif menu == "Add Student":
-    st.image(ADD_ICON, width=100)
-    st.title("➕ Add Student")
+# --------------------------
+# Add Student Page
+# --------------------------
+elif page == "Add Student":
+    safe_image("add.png", width=100)
+    st.header("➕ Add New Student")
 
-    with st.form("add_student_form"):
+    with st.form("student_form"):
         name = st.text_input("Student Name")
-        roll = st.text_input("Roll No")
-        physics = st.number_input("Physics", 0, 100, 0)
-        math = st.number_input("Math", 0, 100, 0)
-        chemistry = st.number_input("Chemistry", 0, 100, 0)
-        english = st.number_input("English", 0, 100, 0)
-        cs = st.number_input("Computer Science", 0, 100, 0)
-        submit = st.form_submit_button("Add Student")
+        roll = st.text_input("Roll Number")
+        marks = {}
+        for subject, max_marks in SUBJECTS.items():
+            marks[subject] = st.number_input(f"{subject} Marks (out of {max_marks})", min_value=0, max_value=max_marks)
 
-    if submit:
-        st.session_state["students"].append({
-            "Name": name,
-            "Roll No": roll,
-            "Physics": physics,
-            "Math": math,
-            "Chemistry": chemistry,
-            "English": english,
-            "Computer Science": cs
-        })
-        st.success(f"✅ Student {name} added successfully!")
+        submitted = st.form_submit_button("Add Student")
 
-elif menu == "Results":
-    st.image(RESULTS_ICON, width=100)
-    st.title("📊 All Students Results")
+        if submitted:
+            obtained_total = sum(marks.values())
+            max_total = sum(SUBJECTS.values())
+            percentage = round((obtained_total / max_total) * 100, 2)
+            grade = calculate_grade(percentage)
 
-    # Upload file
+            student_data = {
+                "Name": name,
+                "Roll No": roll,
+                **marks,
+                "Total Obtained": obtained_total,
+                "Total Marks": max_total,
+                "Percentage": percentage,
+                "Grade": grade
+            }
+
+            df_new = pd.DataFrame([student_data])
+            if os.path.exists(DATA_FILE):
+                df_old = pd.read_csv(DATA_FILE)
+                df = pd.concat([df_old, df_new], ignore_index=True)
+            else:
+                df = df_new
+
+            df.to_csv(DATA_FILE, index=False)
+            st.success(f"✅ Student {name} added successfully!")
+
+# --------------------------
+# Results Page
+# --------------------------
+elif page == "Results":
+    safe_image("results.png", width=100)
+    st.header("📊 All Students Results")
+    safe_image("student_icon.png", width=80)
+
     uploaded_file = st.file_uploader("📂 Upload Student Data (CSV/Excel)", type=["csv", "xlsx"])
-    df_uploaded = None
+    df = None
 
     if uploaded_file is not None:
         try:
             uploaded_file.seek(0)
             if uploaded_file.name.endswith(".csv"):
-                df_uploaded = pd.read_csv(uploaded_file, on_bad_lines="skip")
+                df = pd.read_csv(uploaded_file)
             elif uploaded_file.name.endswith(".xlsx"):
-                df_uploaded = pd.read_excel(uploaded_file)
+                df = pd.read_excel(uploaded_file)
             st.success("✅ File uploaded successfully!")
         except Exception as e:
             st.error(f"❌ Error reading file: {e}")
+    elif os.path.exists(DATA_FILE):
+        df = pd.read_csv(DATA_FILE)
 
-    # Merge manual + uploaded
-    if st.session_state["students"]:
-        df_manual = pd.DataFrame(st.session_state["students"])
+    if df is not None and not df.empty:
+        rows = []
+        for _, row in df.iterrows():
+            for subject, max_marks in SUBJECTS.items():
+                obtained = row[subject]
+                percentage = round((obtained / max_marks) * 100, 2)
+                grade = calculate_grade(percentage)
+                rows.append({
+                    "Name": row["Name"],
+                    "Roll No": row["Roll No"],
+                    "Subject": subject,
+                    "Marks": obtained,
+                    "Total Marks": f"{obtained}/{max_marks}",
+                    "Percentage": f"{percentage}%",
+                    "Grade": grade
+                })
+        df_results = pd.DataFrame(rows)
+        st.dataframe(df_results, use_container_width=True)
     else:
-        df_manual = pd.DataFrame()
+        st.info("ℹ️ No students added yet. Please go to 'Add Student' or upload data.")
 
-    if df_uploaded is not None and not df_uploaded.empty:
-        df_all = pd.concat([df_manual, df_uploaded], ignore_index=True)
-    else:
-        df_all = df_manual
-
-    if not df_all.empty:
-        df_all = calculate_results(df_all)
-        st.dataframe(df_all)
-    else:
-        st.warning("⚠️ No student data available. Add students or upload a file.")
-
-elif menu == "About":
-    st.image(ABOUT_ICON, width=100)
-    st.title("ℹ️ About")
-    st.write("""
-    This is a Student Result Management System built with Streamlit.  
-    - Add students manually  
-    - Upload CSV/XLSX files  
-    - View results with grades and percentages  
-    """)
+# --------------------------
+# About Page
+# --------------------------
+elif page == "About":
+    safe_image("about.png", width=100)
+    st.header("ℹ️ About")
+    st.write("This Student Result Management App is built with **Streamlit**.")
+    st.write("Developed to manage marks, calculate grades, and display results in a clean format.")
