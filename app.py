@@ -13,13 +13,13 @@ def load_css(file_path):
     else:
         st.warning(f"CSS file not found: {file_path}")
 
-# CSS path in images folder
 load_css(os.path.join("images", "style.css"))
 
 # --------------------------
 # Safe Image loader
 # --------------------------
 def load_image(file_path, width=None):
+    """Load image safely; show warning if missing"""
     if os.path.exists(file_path):
         try:
             img = Image.open(file_path)
