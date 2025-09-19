@@ -6,30 +6,30 @@ from PIL import Image
 # --------------------------
 # Safe CSS loader
 # --------------------------
-def load_css(file_path):
-    """Load CSS safely from given path."""
-    if os.path.exists(file_path):
-        with open(file_path) as f:
+def load_css(file_name):
+    path = os.path.join("images", file_name)
+    if os.path.exists(path):
+        with open(path) as f:
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
     else:
-        st.warning(f"CSS file not found: {file_path}")
+        st.warning(f"CSS file not found: {path}")
 
-# Load CSS from images folder
-load_css(os.path.join("images", "style.css"))
+# Load CSS
+load_css("style.css")
 
 # --------------------------
 # Safe image loader
 # --------------------------
-def safe_image(file_path, width=None):
-    """Load an image safely; show warning if missing or corrupted."""
-    if os.path.exists(file_path):
+def safe_image(file_name, width=None):
+    path = os.path.join("images", file_name)
+    if os.path.exists(path):
         try:
-            img = Image.open(file_path)
+            img = Image.open(path)
             st.image(img, width=width)
         except Exception as e:
-            st.warning(f"Cannot open {file_path}: {e}")
+            st.warning(f"Cannot open {file_name}: {e}")
     else:
-        st.warning(f"Image file not found: {file_path}")
+        st.warning(f"Image not found: {file_name}")
 
 # --------------------------
 # Sidebar Navigation
@@ -68,7 +68,7 @@ os.makedirs("data", exist_ok=True)
 # Home Page
 # --------------------------
 if page == "Home":
-    safe_image(os.path.join("images", "home.png"), width=100)
+    safe_image("home.png", width=100)
     st.title("🏫 Welcome to Student Result Management System")
     st.write("Manage students, record marks, and generate result reports easily!")
 
@@ -76,7 +76,7 @@ if page == "Home":
 # Add Student Page
 # --------------------------
 elif page == "Add Student":
-    safe_image(os.path.join("images", "add.png"), width=100)
+    safe_image("add.png", width=100)
     st.header("➕ Add New Student")
 
     with st.form("student_form"):
@@ -84,9 +84,7 @@ elif page == "Add Student":
         roll = st.text_input("Roll Number")
         marks = {}
         for subject, max_marks in SUBJECTS.items():
-            marks[subject] = st.number_input(
-                f"{subject} Marks (out of {max_marks})", min_value=0, max_value=max_marks
-            )
+            marks[subject] = st.number_input(f"{subject} Marks (out of {max_marks})", min_value=0, max_value=max_marks)
 
         submitted = st.form_submit_button("Add Student")
 
@@ -120,9 +118,9 @@ elif page == "Add Student":
 # Results Page
 # --------------------------
 elif page == "Results":
-    safe_image(os.path.join("images", "results.png"), width=100)
+    safe_image("results.png", width=100)
     st.header("📊 All Students Results")
-    safe_image(os.path.join("images", "student_icon.png"), width=80)
+    safe_image("student_icon.png", width=80)
 
     uploaded_file = st.file_uploader("📂 Upload Student Data (CSV/Excel)", type=["csv", "xlsx"])
     df = None
@@ -165,7 +163,7 @@ elif page == "Results":
 # About Page
 # --------------------------
 elif page == "About":
-    safe_image(os.path.join("images", "about.png"), width=100)
+    safe_image("about.png", width=100)
     st.header("ℹ️ About")
     st.write("This Student Result Management App is built with **Streamlit**.")
     st.write("Developed to manage marks, calculate grades, and display results in a clean format.")
