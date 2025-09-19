@@ -20,14 +20,14 @@ load_css(os.path.join("images", "style.css"))
 # --------------------------
 # Safe image loader
 # --------------------------
-def load_image(file_path, width=None):
-    """Load an image safely, show warning if missing or corrupted."""
+def safe_image(file_path, width=None):
+    """Load an image safely; show warning if missing or corrupted."""
     if os.path.exists(file_path):
         try:
             img = Image.open(file_path)
             st.image(img, width=width)
         except Exception as e:
-            st.warning(f"Cannot open image {file_path}: {e}")
+            st.warning(f"Cannot open {file_path}: {e}")
     else:
         st.warning(f"Image file not found: {file_path}")
 
@@ -68,7 +68,7 @@ os.makedirs("data", exist_ok=True)
 # Home Page
 # --------------------------
 if page == "Home":
-    load_image(os.path.join("images", "home.png"), width=100)
+    safe_image(os.path.join("images", "home.png"), width=100)
     st.title("🏫 Welcome to Student Result Management System")
     st.write("Manage students, record marks, and generate result reports easily!")
 
@@ -76,7 +76,7 @@ if page == "Home":
 # Add Student Page
 # --------------------------
 elif page == "Add Student":
-    load_image(os.path.join("images", "add.png"), width=100)
+    safe_image(os.path.join("images", "add.png"), width=100)
     st.header("➕ Add New Student")
 
     with st.form("student_form"):
@@ -84,7 +84,9 @@ elif page == "Add Student":
         roll = st.text_input("Roll Number")
         marks = {}
         for subject, max_marks in SUBJECTS.items():
-            marks[subject] = st.number_input(f"{subject} Marks (out of {max_marks})", min_value=0, max_value=max_marks)
+            marks[subject] = st.number_input(
+                f"{subject} Marks (out of {max_marks})", min_value=0, max_value=max_marks
+            )
 
         submitted = st.form_submit_button("Add Student")
 
@@ -118,9 +120,9 @@ elif page == "Add Student":
 # Results Page
 # --------------------------
 elif page == "Results":
-    load_image(os.path.join("images", "results.png"), width=100)
+    safe_image(os.path.join("images", "results.png"), width=100)
     st.header("📊 All Students Results")
-    load_image(os.path.join("images", "student_icon.png"), width=80)
+    safe_image(os.path.join("images", "student_icon.png"), width=80)
 
     uploaded_file = st.file_uploader("📂 Upload Student Data (CSV/Excel)", type=["csv", "xlsx"])
     df = None
@@ -163,7 +165,7 @@ elif page == "Results":
 # About Page
 # --------------------------
 elif page == "About":
-    load_image(os.path.join("images", "about.png"), width=100)
+    safe_image(os.path.join("images", "about.png"), width=100)
     st.header("ℹ️ About")
     st.write("This Student Result Management App is built with **Streamlit**.")
     st.write("Developed to manage marks, calculate grades, and display results in a clean format.")
