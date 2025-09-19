@@ -142,14 +142,15 @@ elif page == "Results":
                     "Grade": grade
                 })
 
-            # Add overall row
+            # Add overall row with calculated grade
             overall_percentage = round((total_obtained / total_max) * 100, 2)
+            overall_grade = calculate_grade(overall_percentage)
             rows.append({
                 "Subject": "Overall",
                 "Marks Obtained": total_obtained,
                 "Total Marks": f"{total_obtained}/{total_max}",
                 "Percentage": f"{overall_percentage}%",
-                "Grade": "-"
+                "Grade": overall_grade
             })
 
             df_results = pd.DataFrame(rows)
