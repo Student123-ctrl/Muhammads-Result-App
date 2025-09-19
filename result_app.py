@@ -9,17 +9,17 @@ def get_grade(percentage):
         return "A+"
     elif percentage > 81:
         return "A"
-    elif  percentage >= 71:
+    elif 60 <= percentage >= 71:
         return "B+"
-    elif  percentage >= 61:
+    elif 60 <= percentage >= 61:
         return "B"
-    elif  percentage >= 51:
+    elif 60 <= percentage >= 51:
         return "C+"
-    elif percentage >= 41:
+    elif 60 <= percentage >= 41:
         return "C"
-    elif percentage >= 31:
+    elif 60 <= percentage >= 31:
         return "D+"
-    elif percentage >= 21:
+    elif 60 <= percentage >= 21:
         return "E+"
     else:
         return "Fail"
@@ -62,6 +62,4 @@ if st.button("Show Results"):
         st.write(f"**Total:** {total}/500")
         st.write(f"**Percentage:** {percentage:.2f}%")
         st.write(f"**Grade:** {grade}")
-
         st.markdown("---")
-
