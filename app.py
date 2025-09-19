@@ -13,7 +13,7 @@ def load_css(file_path):
     else:
         st.warning(f"CSS file not found: {file_path}")
 
-# Use your existing structure: images folder contains style.css
+# CSS path in images folder
 load_css(os.path.join("images", "style.css"))
 
 # --------------------------
