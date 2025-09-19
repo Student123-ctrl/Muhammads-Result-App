@@ -6,30 +6,29 @@ from PIL import Image
 # --------------------------
 # Safe CSS loader
 # --------------------------
-def load_css(file_name):
-    path = os.path.join("images", file_name)
+def load_css(filename):
+    path = os.path.join("images", filename)
     if os.path.exists(path):
         with open(path) as f:
             st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
     else:
         st.warning(f"CSS file not found: {path}")
 
-# Load CSS
 load_css("style.css")
 
 # --------------------------
 # Safe image loader
 # --------------------------
-def safe_image(file_name, width=None):
-    path = os.path.join("images", file_name)
+def safe_image(filename, width=None):
+    path = os.path.join("images", filename)
     if os.path.exists(path):
         try:
             img = Image.open(path)
             st.image(img, width=width)
         except Exception as e:
-            st.warning(f"Cannot open {file_name}: {e}")
+            st.warning(f"Cannot open {filename}: {e}")
     else:
-        st.warning(f"Image not found: {file_name}")
+        st.warning(f"Image not found: {filename}")
 
 # --------------------------
 # Sidebar Navigation
